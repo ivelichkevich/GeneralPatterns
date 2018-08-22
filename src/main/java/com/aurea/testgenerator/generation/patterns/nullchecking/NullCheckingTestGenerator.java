@@ -112,21 +112,21 @@ public class NullCheckingTestGenerator implements TestGenerator {
                 }
             }
 
-            for(ConstructorDeclaration methodDeclaration : classDeclaration.getConstructors()) {
-                if (methodDeclaration.getParameters().isEmpty() || methodDeclaration.getBody().isEmpty()
-                    //|| !methodDeclaration.getBody().get().toString().contains(CALL_PATTERTN)
+            for(ConstructorDeclaration constructorDeclaration : classDeclaration.getConstructors()) {
+                if (constructorDeclaration.getParameters().isEmpty() || constructorDeclaration.getBody().isEmpty()
+                    //|| !constructorDeclaration.getBody().get().toString().contains(CALL_PATTERTN)
                         ) {
                     continue;
                 }
-                NodeList<Parameter> parameters = methodDeclaration.getParameters();
-                for (MethodCallExpr call : findMethodsCall(methodDeclaration, CALL_PATTERTN)) {
+                NodeList<Parameter> parameters = constructorDeclaration.getParameters();
+                for (MethodCallExpr call : findMethodsCall(constructorDeclaration, CALL_PATTERTN)) {
                     for (int i = 0; i < parameters.size(); i++) {
                         Parameter parameter = parameters.get(i);
                         if (!parameter.getType().isReferenceType()) {
                             continue;
                         }
                         if (call.getArguments().get(0).asNameExpr().getNameAsString().equals(parameter.getNameAsString())) {
-                            buildConstructorTest(classDeclaration, methodDeclaration, parameter, i)
+                            buildConstructorTest(classDeclaration, constructorDeclaration, parameter, i)
                                     .ifPresent(o -> result.getTests().add(o));
                         }
                     }
@@ -140,26 +140,25 @@ public class NullCheckingTestGenerator implements TestGenerator {
         return tests;
     }
 
-    private Optional<Object> buildConstructorTest(ClassOrInterfaceDeclaration classDeclaration,
+    private Optional<DependableNode<MethodDeclaration>> buildConstructorTest(ClassOrInterfaceDeclaration classDeclaration,
             ConstructorDeclaration methodDeclaration, Parameter p, int order) {
         String fullTypeName = ASTNodeUtils.getFullTypeName(classDeclaration);
         InvocationBuilder invocationBuilder = new InvocationBuilder(valueFactory);
-        Optional<DependableNode<ObjectCreationExpr>> maybeConstructor = invocationBuilder.build(classDeclaration.getConstructors().get(0));
+        Optional<DependableNode<ObjectCreationExpr>> maybeConstructor = invocationBuilder.build(methodDeclaration);
         if (!maybeConstructor.isPresent()) {
             return Optional.empty();
         }
         DependableNode<MethodDeclaration> testMethod = new DependableNode<>();
-        method.getNode().getArguments().set(order, new NullLiteralExpr());
-        TestNodeMerger.appendDependencies(testMethod, method);
+
         DependableNode<ObjectCreationExpr> constructor = maybeConstructor.get();
+        constructor.getNode().getArguments().set(order, new NullLiteralExpr());
         TestNodeMerger.appendDependencies(testMethod, constructor);
 
-        String methodName = "test_" + method.getNode().getName().asString() + "_passNullAs" + parameter.getNameAsString() + "_NPE";
+        String methodName = "test_" + constructor.getNode().getTypeAsString() + "_passNullAs" + p.getNameAsString() + "_NPE";
 
         String test = "@Test(expected = NullPointerException.class)\n"
                 + "    public void " + methodName + "(){\n"
-                + "        " + fullTypeName + " o = " + constructor.toString() + ";\n"
-                + "        o." + method.toString() + ";\n"
+                + "        " + constructor.toString() + ";\n"
                 + "    }";
 
         testMethod.setNode(JavaParser.parseBodyDeclaration(test).asMethodDeclaration());
