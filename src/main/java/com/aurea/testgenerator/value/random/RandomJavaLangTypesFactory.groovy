@@ -25,6 +25,8 @@ import org.apache.commons.lang.math.RandomUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.lang.reflect.Constructor
+
 @Component
 class RandomJavaLangTypesFactory implements ReferenceTypeFactory {
 
@@ -153,7 +155,8 @@ class RandomJavaLangTypesFactory implements ReferenceTypeFactory {
         ClassOrInterfaceDeclaration classDeclaration = (type.getTypeDeclaration() as JavaParserClassDeclaration).getWrappedNode()
 
         if (classDeclaration.constructors) {
-            ConstructorDeclaration constructor = classDeclaration.constructors.sort { it.parameters.size() }.first()
+            List<ConstructorDeclaration> list = new ArrayList<>(classDeclaration.constructors)
+            ConstructorDeclaration constructor = list.sort { it.parameters.size() }.first()
             solver.inject(classDeclaration.findParent(CompilationUnit).get())
             return new InvocationBuilder(valueFactory).build(constructor)
         }
