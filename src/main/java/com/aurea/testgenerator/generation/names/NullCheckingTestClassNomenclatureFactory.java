@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 public class NullCheckingTestClassNomenclatureFactory  implements TestClassNomenclatureFactory {
     @Override
     public TestClassNomenclature newTestClassNomenclature() {
-        return new StandardTestClassNomenclature();
+        return new NullCheckingTestClassNomenclature();
     }
 }
