@@ -31,8 +31,10 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeS
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.junit.Assert
 import org.springframework.context.ApplicationEventPublisher
 import spock.lang.Specification
+import java.util.regex.Pattern
 
 import static org.assertj.core.api.Assertions.assertThat
 import static org.mockito.Mockito.mock
@@ -93,6 +95,22 @@ abstract class MatcherPipelineTest extends Specification {
         String resultingTest = testFile.text
 
         assertThat(resultingTest).isEqualToNormalizingWhitespace(expectedTest)
+    }
+
+    String onClassCodeExpectByPattern(String code, String expectedTest) {
+        createTestedCode(code)
+
+        pipeline.start()
+
+        File testFile = cfg.outPath.resolve('sample').resolve('FooPatternTest.java').toFile()
+        assertThat(testFile).describedAs("Expected test to be generated but it wasn't").exists()
+        String resultingTest = testFile.text
+
+        expectedTest = Pattern.compile("\\s+").matcher(expectedTest).replaceAll(" ").trim();
+        resultingTest = Pattern.compile("\\s+").matcher(resultingTest).replaceAll(" ").trim();
+
+        Assert.assertTrue(Pattern.compile(expectedTest).matcher(resultingTest).find())
+        resultingTest
     }
 
     MatcherPipelineTest withClass(String code) {
