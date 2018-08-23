@@ -1,6 +1,7 @@
 package com.aurea.testgenerator.generation.patterns.nullchecking;
 
 import static com.aurea.testgenerator.generation.patterns.nullchecking.NullCheckingTestTypes.NULL_CHECKING;
+import static com.github.javaparser.ast.expr.BinaryExpr.Operator.EQUALS;
 
 import com.aurea.testgenerator.ast.Callability;
 import com.aurea.testgenerator.generation.TestGenerator;
@@ -16,7 +17,10 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NullLiteralExpr;
+import com.github.javaparser.ast.stmt.IfStmt;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -144,6 +148,10 @@ public class NullCheckingTestGenerator implements TestGenerator {
     private static List<MethodCallExpr> findMethodsCall(Node node, String methodName) {
         return node.findAll(MethodCallExpr.class, n -> n.getNameAsString().equals(methodName));
     }
+
+//    private static List<MethodCallExpr> findIfNullCheckCall(Node node, String methodName) {
+//        return node.findAll(IfStmt.class).stream().filter(st -> st.findAll(BinaryExpr.class).stream().filter(bi -> bi.getOperator().asString().equals(EQUALS)));
+//    }
 
     private void publishAndAdd(TestGeneratorResult testGeneratorResult, Unit unit,
             List<CallableDeclaration> testedMethods) {
