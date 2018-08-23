@@ -52,7 +52,7 @@ public class NullCheckingMethodTestBuilder implements NullCheckingTestBuilder {
         TestNodeMerger.appendDependencies(testMethod, method);
 
         String methodName = PREFIX + RandomStringUtils.random(6, true, true)
-                + "_" +  method.getNode().getName().asString() + PASS_NULL_TO + parameter.getNameAsString() + RESULT;
+                + "_" + method.getNode().getName().asString() + PASS_NULL_TO + parameter.getNameAsString() + RESULT;
 
         String test = "@Test(expected = NullPointerException.class)\n"
                 + "    public void " + methodName + "(){\n"

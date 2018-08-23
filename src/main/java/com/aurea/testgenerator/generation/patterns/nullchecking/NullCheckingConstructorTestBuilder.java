@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class NullCheckingConstructorTestBuilder implements NullCheckingTestBuilder {
+
     @Autowired
     ValueFactory valueFactory;
 
@@ -27,7 +28,8 @@ public class NullCheckingConstructorTestBuilder implements NullCheckingTestBuild
     public Optional<DependableNode<MethodDeclaration>> build(ClassOrInterfaceDeclaration classDeclaration,
             CallableDeclaration callableDeclaration, Parameter parameter, int order) {
         InvocationBuilder invocationBuilder = new InvocationBuilder(valueFactory);
-        Optional<DependableNode<ObjectCreationExpr>> maybeConstructor = invocationBuilder.build((ConstructorDeclaration)callableDeclaration);
+        Optional<DependableNode<ObjectCreationExpr>> maybeConstructor = invocationBuilder
+                .build((ConstructorDeclaration) callableDeclaration);
         if (!maybeConstructor.isPresent()) {
             return Optional.empty();
         }
@@ -38,7 +40,7 @@ public class NullCheckingConstructorTestBuilder implements NullCheckingTestBuild
         TestNodeMerger.appendDependencies(testMethod, constructor);
 
         String methodName = PREFIX + RandomStringUtils.random(6, true, true)
-                + "_" +  constructor.getNode().getTypeAsString() + PASS_NULL_TO + parameter.getNameAsString() + RESULT;
+                + "_" + constructor.getNode().getTypeAsString() + PASS_NULL_TO + parameter.getNameAsString() + RESULT;
 
         String test = "@Test(expected = NullPointerException.class)\n"
                 + "    public void " + methodName + "(){\n"
