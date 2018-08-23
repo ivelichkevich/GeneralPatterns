@@ -6,7 +6,7 @@ import com.aurea.testgenerator.generation.TestGenerator
 public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
     def "test_OneMethodOneParameter"() {
         expect:
-        onClassCodeExpect """
+        onClassCodeExpectByPattern """
             import java.util.Objects;
             
             public class PanelLittle {
@@ -24,19 +24,19 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
         """, """     
             package sample;
             
-            import java.util.Objects;
-            import javax.annotation.Generated;
-            import org.junit.Test;
+            import java\\.util\\.Objects;
+            import javax\\.annotation\\.Generated;
+            import org\\.junit\\.Test;
             
-            @Generated("GeneralPatterns")
-            public class FooPatternTest {
+            @Generated\\("GeneralPatterns"\\)
+            public class FooPatternTest \\{
             
-                @Test(expected = NullPointerException.class)
-                public void test_setId_passNullAs_id_NPE() {
-                    PanelLittle o = new PanelLittle();
-                    o.setId(null);
-                }
-            }
+                @Test\\(expected \\= NullPointerException\\.class\\)
+                public void test_[0-9a-zA-Z]+_setId_passNullAs_id_NPE\\(\\) \\{
+                    PanelLittle o \\= new PanelLittle\\(\\);
+                    o\\.setId\\(null\\);
+                \\}
+            \\}
         """
     }
 
@@ -76,19 +76,19 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
             public class FooPatternTest \\{
              
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_setId_passNullAs_id_NPE\\(\\) \\{
+                public void test_[0-9a-zA-Z]+_setId_passNullAs_id_NPE\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setId\\(null\\);
                 \\}
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_setup_passNullAs_id_NPE\\(\\) \\{
+                public void test_[0-9a-zA-Z]+_setup_passNullAs_id_NPE\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setup\\(null, "[0-9a-zA-Z]+"\\);
                 \\}
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_setup_passNullAs_serial_NPE\\(\\) \\{
+                public void test_[0-9a-zA-Z]+_setup_passNullAs_serial_NPE\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setup\\([0-9]+L, null\\);
                 \\}
@@ -125,12 +125,12 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
             public class FooPatternTest \\{
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_PanelLittle_passNullAs_id_NPE\\(\\) \\{
+                public void test_[0-9a-zA-Z]+_PanelLittle_passNullAs_id_NPE\\(\\) \\{
                     new PanelLittle\\(null, "[0-9a-zA-Z]+"\\);
                 \\}
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_PanelLittle_passNullAs_serial_NPE\\(\\) \\{
+                public void test_[0-9a-zA-Z]+_PanelLittle_passNullAs_serial_NPE\\(\\) \\{
                     new PanelLittle\\([0-9]+L, null\\);
                 \\}
             \\}
@@ -140,10 +140,14 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
     @Override
     TestGenerator generator() {
         NullCheckingTestGenerator generator = new NullCheckingTestGenerator()
-        generator.setValueFactory(valueFactory)
-        generator.setNomenclatures(nomenclatureFactory)
         generator.setCoverageReporter(visitReporter)
         generator.setReporter(reporter)
+        NullCheckingMethodTestBuilder methodTestBuilder = new NullCheckingMethodTestBuilder();
+        methodTestBuilder.setValueFactory(valueFactory)
+        generator.setMethodBuilder(methodTestBuilder)
+        NullCheckingConstructorTestBuilder constructorTestBuilder = new NullCheckingConstructorTestBuilder();
+        constructorTestBuilder.setValueFactory(valueFactory)
+        generator.setConstructorBuilder(constructorTestBuilder)
         generator
     }
 }
