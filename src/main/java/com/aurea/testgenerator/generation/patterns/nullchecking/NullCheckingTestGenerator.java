@@ -18,13 +18,18 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ThrowStmt;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
@@ -149,9 +154,19 @@ public class NullCheckingTestGenerator implements TestGenerator {
         return node.findAll(MethodCallExpr.class, n -> n.getNameAsString().equals(methodName));
     }
 
-//    private static List<MethodCallExpr> findIfNullCheckCall(Node node, String methodName) {
-//        return node.findAll(IfStmt.class).stream().filter(st -> st.findAll(BinaryExpr.class).stream().filter(bi -> bi.getOperator().asString().equals(EQUALS)));
-//    }
+    private static List<NameExpr> findIfNullCheckCall(Node node, String methodName) {
+        return node.findAll(IfStmt.class).stream()
+                .filter(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
+                        .anyMatch(bi -> (bi.getOperator().equals(EQUALS) && (bi.getRight().isNullLiteralExpr() || bi.getLeft().isNullLiteralExpr())))
+                        &&
+                        ifStmt.getThenStmt().findAll(ThrowStmt.class).stream()
+                                .anyMatch(throwStmt -> throwStmt.findAll(ObjectCreationExpr.class).stream()
+                                        .anyMatch(oce -> "IllegalArgumentException".equals(oce.getTypeAsString()))))
+                .map(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
+                        .map(bi -> (bi.getLeft().isNullLiteralExpr() ? bi.getRight() : bi.getLeft()).asNameExpr())
+                        .findFirst().get())
+                .collect(Collectors.toList());
+    }
 
     private void publishAndAdd(TestGeneratorResult testGeneratorResult, Unit unit,
             List<CallableDeclaration> testedMethods) {
