@@ -40,11 +40,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * not supported: Stream.of(latitude, longitude).forEach(Objects::requireNonNull);
- * final class as method argument (cant * generate not nul value)
- * changed arg name (eg by = to other reference)
- * invocations of requireNonNull for not args notimplemented by requirements
- * requireNonNull method wrapper
+ * not supported: Stream.of(latitude, longitude).forEach(Objects::requireNonNull); final class as method argument (cant
+ * * generate not nul value) changed arg name (eg by = to other reference) invocations of requireNonNull for not args
+ * notimplemented by requirements requireNonNull method wrapper
  *
  * primitive types ignored
  */
@@ -110,13 +108,16 @@ public class NullCheckingTestGenerator implements TestGenerator {
     private void buildCallable(ClassOrInterfaceDeclaration classDeclaration, List<CallableDeclaration> toPublish,
             TestGeneratorResult result, CallableDeclaration callableDeclaration, NullCheckingTestBuilder builder) {
         List<String> args = findRequireNonNullArgs(callableDeclaration);
-        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args, NullPointerException.class.getSimpleName());
+        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args,
+                NullPointerException.class.getSimpleName());
         args = findIfNullCheckArgs(callableDeclaration);
-        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args, IllegalArgumentException.class.getSimpleName());
+        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args,
+                IllegalArgumentException.class.getSimpleName());
     }
 
     private List<String> findIfNullCheckArgs(CallableDeclaration callableDeclaration) {
-        return findIfNullCheckCall(callableDeclaration).stream().map(m -> m.getNameAsString()).collect(Collectors.toList());
+        return findIfNullCheckCall(callableDeclaration).stream().map(m -> m.getNameAsString())
+                .collect(Collectors.toList());
     }
 
     private List<String> findRequireNonNullArgs(CallableDeclaration callableDeclaration) {
@@ -129,7 +130,7 @@ public class NullCheckingTestGenerator implements TestGenerator {
             NullCheckingTestBuilder builder, List<String> args, String exceptionName) {
         NodeList<Parameter> parameters = callableDeclaration.getParameters();
         Map<String, Integer> params = range(0, parameters.size()).boxed()
-                .collect(toMap(i -> parameters.get(i), i -> i))
+                .collect(toMap(parameters::get, i -> i))
                 .entrySet().stream().filter(e -> parameterMatch(e.getKey()))
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey().getNameAsString(), e.getValue()))
                 .filter(e -> args.contains(e.getKey()))
@@ -176,7 +177,8 @@ public class NullCheckingTestGenerator implements TestGenerator {
     private static List<NameExpr> findIfNullCheckCall(Node node) {
         return node.findAll(IfStmt.class).stream()
                 .filter(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
-                        .anyMatch(bi -> (bi.getOperator().equals(EQUALS) && (bi.getRight().isNullLiteralExpr() || bi.getLeft().isNullLiteralExpr())))
+                        .anyMatch(bi -> (bi.getOperator().equals(EQUALS) && (bi.getRight().isNullLiteralExpr() || bi
+                                .getLeft().isNullLiteralExpr())))
                         &&
                         ifStmt.getThenStmt().findAll(ThrowStmt.class).stream()
                                 .anyMatch(throwStmt -> throwStmt.findAll(ObjectCreationExpr.class).stream()

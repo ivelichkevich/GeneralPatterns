@@ -53,7 +53,7 @@ public class NullCheckingMethodTestBuilder implements NullCheckingTestBuilder {
         String methodName = PREFIX + RandomStringUtils.random(6, true, true)
                 + "_" + method.getNode().getName().asString() + PASS_NULL_TO + parameter + RESULT;
 
-        String test = "@Test(expected = "+ exceptionName + ".class)\n"
+        String test = "@Test(expected = " + exceptionName + ".class)\n"
                 + "    public void " + methodName + "(){\n"
                 + "        " + fullTypeName + " o = " + newObject + ";\n"
                 + "        o." + method.toString() + ";\n"
