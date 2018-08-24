@@ -2,6 +2,8 @@ package com.aurea.testgenerator.generation.patterns.nullchecking;
 
 import static com.aurea.testgenerator.generation.patterns.nullchecking.NullCheckingTestTypes.NULL_CHECKING;
 import static com.github.javaparser.ast.expr.BinaryExpr.Operator.EQUALS;
+import static com.github.javaparser.ast.expr.BinaryExpr.Operator.LESS;
+import static com.github.javaparser.ast.expr.BinaryExpr.Operator.GREATER;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
@@ -188,6 +190,27 @@ public class NullCheckingTestGenerator implements TestGenerator {
                         .findFirst().get())
                 .collect(toList());
     }
+
+//    private static List<NameExpr> findRangeCheckCall(Node node, List<String> params) {
+//        return node.findAll(IfStmt.class).stream()
+//                .filter(ifStmt ->
+//                        ifStmt.getThenStmt().findAll(ThrowStmt.class).stream()
+//                                .anyMatch(throwStmt -> throwStmt.findAll(ObjectCreationExpr.class).stream()
+//                                        .anyMatch(oce -> "IllegalArgumentException".equals(oce.getTypeAsString())))
+//                        &&
+//                        ifStmt.findAll(BinaryExpr.class).stream()
+//                                .anyMatch(bi -> (bi.getOperator().equals(LESS) && (bi.getRight().isNullLiteralExpr() || bi
+//                                        .getLeft().isNullLiteralExpr()))))
+//                .map(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
+//                        .map(bi -> (bi.getLeft().isNullLiteralExpr() ? bi.getRight() : bi.getLeft()).asNameExpr())
+//                        .findFirst().get())
+//                .collect(toList());
+//
+////        node.findAll(IfStmt.class).stream().findAny().get().findAll(BinaryExpr.class).stream()
+////                .filter(bi -> (bi.getOperator().asString().equals(LESS) || bi.getOperator().asString().equals(GREATER))
+////                        && (params.contains(bi.getLeft().toString()) || params.contains(bi.getRight().toString())))
+////                .collect(Collectors.toList())
+//    }
 
     private void publishAndAdd(TestGeneratorResult testGeneratorResult, Unit unit,
             List<CallableDeclaration> testedMethods) {
