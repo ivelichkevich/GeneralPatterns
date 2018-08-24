@@ -2,6 +2,9 @@ package com.aurea.testgenerator.generation.patterns.nullchecking;
 
 import static com.aurea.testgenerator.generation.patterns.nullchecking.NullCheckingTestTypes.NULL_CHECKING;
 import static com.github.javaparser.ast.expr.BinaryExpr.Operator.EQUALS;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
 
 import com.aurea.testgenerator.ast.Callability;
 import com.aurea.testgenerator.generation.TestGenerator;
@@ -18,20 +21,18 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.BinaryExpr;
-import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,19 +109,37 @@ public class NullCheckingTestGenerator implements TestGenerator {
 
     private void buildCallable(ClassOrInterfaceDeclaration classDeclaration, List<CallableDeclaration> toPublish,
             TestGeneratorResult result, CallableDeclaration callableDeclaration, NullCheckingTestBuilder builder) {
+        List<String> args = findRequireNonNullArgs(callableDeclaration);
+        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args, NullPointerException.class.getSimpleName());
+        args = findIfNullCheckArgs(callableDeclaration);
+        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args, IllegalArgumentException.class.getSimpleName());
+    }
+
+    private List<String> findIfNullCheckArgs(CallableDeclaration callableDeclaration) {
+        return findIfNullCheckCall(callableDeclaration).stream().map(m -> m.getNameAsString()).collect(Collectors.toList());
+    }
+
+    private List<String> findRequireNonNullArgs(CallableDeclaration callableDeclaration) {
+        return findMethodsCall(callableDeclaration, CALL_PATTERTN).stream()
+                .map(c -> c.getArguments().get(0).asNameExpr().getNameAsString()).collect(toList());
+    }
+
+    private void buildCallableWithArgs(ClassOrInterfaceDeclaration classDeclaration,
+            List<CallableDeclaration> toPublish, TestGeneratorResult result, CallableDeclaration callableDeclaration,
+            NullCheckingTestBuilder builder, List<String> args, String exceptionName) {
         NodeList<Parameter> parameters = callableDeclaration.getParameters();
-        findMethodsCall(callableDeclaration, CALL_PATTERTN)
-                .forEach(call -> IntStream.range(0, parameters.size()).forEach(i -> {
-                    Parameter parameter = parameters.get(i);
-                    if (!parameterMatch(parameter)) {
-                        return;
-                    }
-                    if (call.getArguments().get(0).asNameExpr().getNameAsString().equals(parameter.getNameAsString())) {
-                        builder.build(classDeclaration, callableDeclaration, parameter, i)
-                                .ifPresent(o -> result.getTests().add(o));
-                        toPublish.add(callableDeclaration);
-                    }
-                }));
+        Map<String, Integer> params = range(0, parameters.size()).boxed()
+                .collect(toMap(i -> parameters.get(i), i -> i))
+                .entrySet().stream().filter(e -> parameterMatch(e.getKey()))
+                .map(e -> new AbstractMap.SimpleEntry<>(e.getKey().getNameAsString(), e.getValue()))
+                .filter(e -> args.contains(e.getKey()))
+                .collect(toMap(e -> e.getKey(), e -> e.getValue()));
+
+        params.forEach((k, v) -> {
+            builder.build(classDeclaration, callableDeclaration, k, v, exceptionName)
+                    .ifPresent(o -> result.getTests().add(o));
+            toPublish.add(callableDeclaration);
+        });
     }
 
     private boolean parameterMatch(Parameter parameter) {
@@ -147,14 +166,14 @@ public class NullCheckingTestGenerator implements TestGenerator {
 
     private List<ClassOrInterfaceDeclaration> extractClasses(Unit unit) {
         return unit.getCu().findAll(ClassOrInterfaceDeclaration.class).stream()
-                .filter(c -> !c.isInterface()).collect(Collectors.toList());
+                .filter(c -> !c.isInterface()).collect(toList());
     }
 
     private static List<MethodCallExpr> findMethodsCall(Node node, String methodName) {
         return node.findAll(MethodCallExpr.class, n -> n.getNameAsString().equals(methodName));
     }
 
-    private static List<NameExpr> findIfNullCheckCall(Node node, String methodName) {
+    private static List<NameExpr> findIfNullCheckCall(Node node) {
         return node.findAll(IfStmt.class).stream()
                 .filter(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
                         .anyMatch(bi -> (bi.getOperator().equals(EQUALS) && (bi.getRight().isNullLiteralExpr() || bi.getLeft().isNullLiteralExpr())))
@@ -165,7 +184,7 @@ public class NullCheckingTestGenerator implements TestGenerator {
                 .map(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
                         .map(bi -> (bi.getLeft().isNullLiteralExpr() ? bi.getRight() : bi.getLeft()).asNameExpr())
                         .findFirst().get())
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void publishAndAdd(TestGeneratorResult testGeneratorResult, Unit unit,

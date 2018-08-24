@@ -80,17 +80,17 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setId\\(null\\);
                 \\}
+                
+                @Test\\(expected \\= NullPointerException\\.class\\)
+                public void test_[0-9a-zA-Z]+_setup_passNullAs_serial_NPE\\(\\) \\{
+                    PanelLittle o \\= new PanelLittle\\(\\);
+                    o\\.setup\\([0-9]+L, null\\);
+                \\}
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
                 public void test_[0-9a-zA-Z]+_setup_passNullAs_id_NPE\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setup\\(null, "[0-9a-zA-Z]+"\\);
-                \\}
-            
-                @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_setup_passNullAs_serial_NPE\\(\\) \\{
-                    PanelLittle o \\= new PanelLittle\\(\\);
-                    o\\.setup\\([0-9]+L, null\\);
                 \\}
             \\}
         """
@@ -125,13 +125,13 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
             public class FooPatternTest \\{
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_PanelLittle_passNullAs_id_NPE\\(\\) \\{
-                    new PanelLittle\\(null, "[0-9a-zA-Z]+"\\);
-                \\}
-            
-                @Test\\(expected \\= NullPointerException\\.class\\)
                 public void test_[0-9a-zA-Z]+_PanelLittle_passNullAs_serial_NPE\\(\\) \\{
                     new PanelLittle\\([0-9]+L, null\\);
+                \\}
+                
+                @Test\\(expected \\= NullPointerException\\.class\\)
+                public void test_[0-9a-zA-Z]+_PanelLittle_passNullAs_id_NPE\\(\\) \\{
+                    new PanelLittle\\(null, "[0-9a-zA-Z]+"\\);
                 \\}
             \\}
         """

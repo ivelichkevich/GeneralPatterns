@@ -10,7 +10,6 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
@@ -27,7 +26,7 @@ public class NullCheckingMethodTestBuilder implements NullCheckingTestBuilder {
 
     @Override
     public Optional<DependableNode<MethodDeclaration>> build(ClassOrInterfaceDeclaration classDeclaration,
-            CallableDeclaration callableDeclaration, Parameter parameter, int order) {
+            CallableDeclaration callableDeclaration, String parameter, int order, String exceptionName) {
         String fullTypeName = ASTNodeUtils.getFullTypeName(classDeclaration);
         InvocationBuilder invocationBuilder = new InvocationBuilder(valueFactory);
         DependableNode<MethodDeclaration> testMethod = new DependableNode<>();
@@ -52,9 +51,9 @@ public class NullCheckingMethodTestBuilder implements NullCheckingTestBuilder {
         TestNodeMerger.appendDependencies(testMethod, method);
 
         String methodName = PREFIX + RandomStringUtils.random(6, true, true)
-                + "_" + method.getNode().getName().asString() + PASS_NULL_TO + parameter.getNameAsString() + RESULT;
+                + "_" + method.getNode().getName().asString() + PASS_NULL_TO + parameter + RESULT;
 
-        String test = "@Test(expected = NullPointerException.class)\n"
+        String test = "@Test(expected = "+ exceptionName + ".class)\n"
                 + "    public void " + methodName + "(){\n"
                 + "        " + fullTypeName + " o = " + newObject + ";\n"
                 + "        o." + method.toString() + ";\n"
