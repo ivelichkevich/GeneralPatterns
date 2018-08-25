@@ -42,7 +42,6 @@ import org.springframework.stereotype.Component;
 @Profile("null-checking")
 public class NullCheckingTestGenerator implements TestGenerator {
 
-    private static Logger logger = LogManager.getLogger(NullCheckingTestGenerator.class);
     private static final String CALL_PATTERTN = "requireNonNull";
     private static final String IMPORT_PATTERTN = "java.util.";
 
@@ -61,7 +60,7 @@ public class NullCheckingTestGenerator implements TestGenerator {
     @Override
     public Collection<TestGeneratorResult> generate(Unit unit) {
         if (!importsMatch(unit)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         List<TestGeneratorResult> tests = new ArrayList<>();
@@ -119,7 +118,11 @@ public class NullCheckingTestGenerator implements TestGenerator {
     }
 
     private boolean importsMatch(Unit unit) {
-        return unit.getCu().getImports().stream().map(ImportDeclaration::getName).anyMatch(n -> n.asString()
+        return unit.getCu()
+                .getImports()
+                .stream()
+                .map(ImportDeclaration::getName)
+                .anyMatch(n -> n.asString()
                 .startsWith(IMPORT_PATTERTN));
     }
 
@@ -137,8 +140,11 @@ public class NullCheckingTestGenerator implements TestGenerator {
     }
 
     private List<ClassOrInterfaceDeclaration> extractClasses(Unit unit) {
-        return unit.getCu().findAll(ClassOrInterfaceDeclaration.class).stream()
-                .filter(c -> !c.isInterface()).collect(Collectors.toList());
+        return unit.getCu()
+                .findAll(ClassOrInterfaceDeclaration.class)
+                .stream()
+                .filter(c -> !c.isInterface())
+                .collect(Collectors.toList());
     }
 
     private static List<MethodCallExpr> findMethodsCall(Node node, String methodName) {

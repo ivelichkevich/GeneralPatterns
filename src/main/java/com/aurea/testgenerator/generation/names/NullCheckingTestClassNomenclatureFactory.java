@@ -5,7 +5,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("null-checking")
-public class NullCheckingTestClassNomenclatureFactory  implements TestClassNomenclatureFactory {
+public class NullCheckingTestClassNomenclatureFactory implements TestClassNomenclatureFactory {
+
     @Override
     public TestClassNomenclature newTestClassNomenclature() {
         return new NullCheckingTestClassNomenclature();
