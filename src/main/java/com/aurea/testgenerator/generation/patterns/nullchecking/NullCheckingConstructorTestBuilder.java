@@ -7,7 +7,6 @@ import com.aurea.testgenerator.generation.source.Imports;
 import com.aurea.testgenerator.value.ValueFactory;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.body.CallableDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
@@ -24,8 +23,8 @@ public class NullCheckingConstructorTestBuilder implements NullCheckingTestBuild
     ValueFactory valueFactory;
 
     @Override
-    public Optional<DependableNode<MethodDeclaration>> build(ClassOrInterfaceDeclaration classDeclaration,
-            CallableDeclaration callableDeclaration, String parameter, int order, String exceptionName) {
+    public Optional<DependableNode<MethodDeclaration>> build(CallableDeclaration callableDeclaration, String parameter,
+            int order, String exceptionName) {
         InvocationBuilder invocationBuilder = new InvocationBuilder(valueFactory);
         Optional<DependableNode<ObjectCreationExpr>> maybeConstructor = invocationBuilder
                 .build((ConstructorDeclaration) callableDeclaration);

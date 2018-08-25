@@ -98,22 +98,22 @@ public class NullCheckingTestGenerator implements TestGenerator {
     private void generateMethodTests(ClassOrInterfaceDeclaration classDeclaration, List<CallableDeclaration> toPublish,
             TestGeneratorResult result) {
         classDeclaration.getMethods().stream().filter(this::methodMatch)
-                .forEach(m -> buildCallable(classDeclaration, toPublish, result, m, methodBuilder));
+                .forEach(m -> buildCallable(toPublish, result, m, methodBuilder));
     }
 
     private void generateConstructorTests(ClassOrInterfaceDeclaration classDeclaration,
             List<CallableDeclaration> toPublish, TestGeneratorResult result) {
         classDeclaration.getConstructors().stream().filter(this::constructorMatch)
-                .forEach(c -> buildCallable(classDeclaration, toPublish, result, c, constructorBuilder));
+                .forEach(c -> buildCallable(toPublish, result, c, constructorBuilder));
     }
 
-    private void buildCallable(ClassOrInterfaceDeclaration classDeclaration, List<CallableDeclaration> toPublish,
+    private void buildCallable(List<CallableDeclaration> toPublish,
             TestGeneratorResult result, CallableDeclaration callableDeclaration, NullCheckingTestBuilder builder) {
         List<String> args = findRequireNonNullArgs(callableDeclaration);
-        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args,
+        buildCallableWithArgs(toPublish, result, callableDeclaration, builder, args,
                 NullPointerException.class.getSimpleName());
         args = findIfNullCheckArgs(callableDeclaration);
-        buildCallableWithArgs(classDeclaration, toPublish, result, callableDeclaration, builder, args,
+        buildCallableWithArgs(toPublish, result, callableDeclaration, builder, args,
                 IllegalArgumentException.class.getSimpleName());
     }
 
@@ -127,20 +127,20 @@ public class NullCheckingTestGenerator implements TestGenerator {
                 .map(c -> c.getArguments().get(0).asNameExpr().getNameAsString()).collect(toList());
     }
 
-    private void buildCallableWithArgs(ClassOrInterfaceDeclaration classDeclaration,
-            List<CallableDeclaration> toPublish, TestGeneratorResult result, CallableDeclaration callableDeclaration,
+    private void buildCallableWithArgs(List<CallableDeclaration> toPublish, TestGeneratorResult result,
+            CallableDeclaration callableDeclaration,
             NullCheckingTestBuilder builder, List<String> args, String exceptionName) {
         NodeList<Parameter> parameters = callableDeclaration.getParameters();
+        findRangeCheckCall(callableDeclaration, parameters.stream().map(p -> p.getNameAsString()).collect(toList()));
         Map<String, Integer> params = range(0, parameters.size()).boxed()
                 .collect(toMap(parameters::get, i -> i))
                 .entrySet().stream().filter(e -> parameterMatch(e.getKey()))
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey().getNameAsString(), e.getValue()))
                 .filter(e -> args.contains(e.getKey()))
                 .collect(toMap(e -> e.getKey(), e -> e.getValue()));
-
+        //идем через все параметры, для каждого параметра создаем билконфиг из списка чекеров
         params.forEach((k, v) -> {
-            builder.build(classDeclaration, callableDeclaration, k, v, exceptionName)
-                    .ifPresent(o -> result.getTests().add(o));
+            builder.build(callableDeclaration, k, v, exceptionName).ifPresent(o -> result.getTests().add(o));
             toPublish.add(callableDeclaration);
         });
     }
@@ -178,39 +178,45 @@ public class NullCheckingTestGenerator implements TestGenerator {
 
     private static List<NameExpr> findIfNullCheckCall(Node node) {
         return node.findAll(IfStmt.class).stream()
-                .filter(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
-                        .anyMatch(bi -> (bi.getOperator().equals(EQUALS) && (bi.getRight().isNullLiteralExpr() || bi
-                                .getLeft().isNullLiteralExpr())))
-                        &&
-                        ifStmt.getThenStmt().findAll(ThrowStmt.class).stream()
-                                .anyMatch(throwStmt -> throwStmt.findAll(ObjectCreationExpr.class).stream()
-                                        .anyMatch(oce -> "IllegalArgumentException".equals(oce.getTypeAsString()))))
-                .map(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
-                        .map(bi -> (bi.getLeft().isNullLiteralExpr() ? bi.getRight() : bi.getLeft()).asNameExpr())
-                        .findFirst().get())
+                .filter(ifStmt -> checkIAE(ifStmt) && checkEqulasNullExp(ifStmt))
+                .map(ifStmt -> toNameExp(ifStmt))
                 .collect(toList());
     }
 
-//    private static List<NameExpr> findRangeCheckCall(Node node, List<String> params) {
-//        return node.findAll(IfStmt.class).stream()
-//                .filter(ifStmt ->
-//                        ifStmt.getThenStmt().findAll(ThrowStmt.class).stream()
-//                                .anyMatch(throwStmt -> throwStmt.findAll(ObjectCreationExpr.class).stream()
-//                                        .anyMatch(oce -> "IllegalArgumentException".equals(oce.getTypeAsString())))
-//                        &&
-//                        ifStmt.findAll(BinaryExpr.class).stream()
-//                                .anyMatch(bi -> (bi.getOperator().equals(LESS) && (bi.getRight().isNullLiteralExpr() || bi
-//                                        .getLeft().isNullLiteralExpr()))))
-//                .map(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream()
-//                        .map(bi -> (bi.getLeft().isNullLiteralExpr() ? bi.getRight() : bi.getLeft()).asNameExpr())
-//                        .findFirst().get())
-//                .collect(toList());
-//
-////        node.findAll(IfStmt.class).stream().findAny().get().findAll(BinaryExpr.class).stream()
-////                .filter(bi -> (bi.getOperator().asString().equals(LESS) || bi.getOperator().asString().equals(GREATER))
-////                        && (params.contains(bi.getLeft().toString()) || params.contains(bi.getRight().toString())))
-////                .collect(Collectors.toList())
-//    }
+    private static List<BinaryExpr> findRangeCheckCall(Node node, List<String> params) {
+    //private static Map<NameExpr, LiteralStringValueExpr> findRangeCheckCall(Node node, List<String> params) {
+        return node.findAll(IfStmt.class).stream()
+                .filter(ifStmt -> checkIAE(ifStmt))
+                .flatMap(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream())
+                .filter(be -> checkRangeExp(be, params))
+                .collect(toList());
+    }
+
+    private static boolean checkRangeExp(BinaryExpr bi, List<String> params) {
+        if (LESS.equals(bi.getOperator()) || GREATER.equals(bi.getOperator())) {
+            return (params.contains(bi.getLeft().toString()) && bi.getRight().isLiteralStringValueExpr())
+                    || (bi.getLeft().isLiteralStringValueExpr() && params.contains(bi.getRight().toString()));
+        }
+        return false;
+    }
+
+    private static boolean checkIAE(IfStmt ifStmt) {
+        return ifStmt.getThenStmt().findAll(ThrowStmt.class).stream()
+                .anyMatch(throwStmt -> throwStmt.findAll(ObjectCreationExpr.class).stream()
+                        .anyMatch(oce -> "IllegalArgumentException".equals(oce.getTypeAsString())));
+    }
+
+    private static boolean checkEqulasNullExp(IfStmt ifStmt) {
+        return ifStmt.findAll(BinaryExpr.class).stream()
+                .anyMatch(bi -> (bi.getOperator().equals(EQUALS) && (bi.getRight().isNullLiteralExpr() || bi
+                        .getLeft().isNullLiteralExpr())));
+    }
+
+    private static NameExpr toNameExp (IfStmt ifStmt) {
+       return ifStmt.findAll(BinaryExpr.class).stream()
+                .map(bi -> (bi.getLeft().isNullLiteralExpr() ? bi.getRight() : bi.getLeft()).asNameExpr())
+                .findFirst().get();
+    }
 
     private void publishAndAdd(TestGeneratorResult testGeneratorResult, Unit unit,
             List<CallableDeclaration> testedMethods) {

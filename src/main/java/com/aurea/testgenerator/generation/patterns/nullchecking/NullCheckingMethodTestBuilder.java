@@ -25,8 +25,9 @@ public class NullCheckingMethodTestBuilder implements NullCheckingTestBuilder {
     ValueFactory valueFactory;
 
     @Override
-    public Optional<DependableNode<MethodDeclaration>> build(ClassOrInterfaceDeclaration classDeclaration,
-            CallableDeclaration callableDeclaration, String parameter, int order, String exceptionName) {
+    public Optional<DependableNode<MethodDeclaration>> build(CallableDeclaration callableDeclaration, String parameter,
+            int order, String exceptionName) {
+        ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration)callableDeclaration.getParentNode().get();
         String fullTypeName = ASTNodeUtils.getFullTypeName(classDeclaration);
         InvocationBuilder invocationBuilder = new InvocationBuilder(valueFactory);
         DependableNode<MethodDeclaration> testMethod = new DependableNode<>();
