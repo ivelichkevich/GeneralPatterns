@@ -32,7 +32,7 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
             public class FooPatternTest \\{
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_setId_passNullAs_id_NPE\\(\\) \\{
+                public void test_setId_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setId\\(null\\);
                 \\}
@@ -76,19 +76,19 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
             public class FooPatternTest \\{
              
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_setId_passNullAs_id_NPE\\(\\) \\{
+                public void test_setId_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setId\\(null\\);
                 \\}
                 
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_setup_passNullAs_serial_NPE\\(\\) \\{
+                public void test_setup_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setup\\([0-9]+L, null\\);
                 \\}
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_setup_passNullAs_id_NPE\\(\\) \\{
+                public void test_setup_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
                     o\\.setup\\(null, "[0-9a-zA-Z]+"\\);
                 \\}
@@ -125,12 +125,12 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
             public class FooPatternTest \\{
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_PanelLittle_passNullAs_serial_NPE\\(\\) \\{
+                public void test_PanelLittle_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     new PanelLittle\\([0-9]+L, null\\);
                 \\}
                 
                 @Test\\(expected \\= NullPointerException\\.class\\)
-                public void test_[0-9a-zA-Z]+_PanelLittle_passNullAs_id_NPE\\(\\) \\{
+                public void test_PanelLittle_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     new PanelLittle\\(null, "[0-9a-zA-Z]+"\\);
                 \\}
             \\}

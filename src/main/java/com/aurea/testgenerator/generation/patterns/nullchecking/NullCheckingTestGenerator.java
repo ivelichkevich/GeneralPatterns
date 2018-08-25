@@ -23,17 +23,22 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.LiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
+import com.google.common.collect.ImmutableMap;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -138,11 +143,20 @@ public class NullCheckingTestGenerator implements TestGenerator {
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey().getNameAsString(), e.getValue()))
                 .filter(e -> args.contains(e.getKey()))
                 .collect(toMap(e -> e.getKey(), e -> e.getValue()));
-        //идем через все параметры, для каждого параметра создаем билконфиг из списка чекеров
+
         params.forEach((k, v) -> {
-            builder.build(callableDeclaration, k, v, exceptionName).ifPresent(o -> result.getTests().add(o));
+            builder.build(new NullCheckingBuildConfig(exceptionName, callableDeclaration,
+                    ImmutableMap.of(v, new NullLiteralExpr()))).ifPresent(o -> result.getTests().add(o));
             toPublish.add(callableDeclaration);
         });
+
+
+
+        new CheckingSrvice(callableDeclaration).createConfigs().forEach(v -> {
+            builder.build(v);
+            toPublish.add(callableDeclaration);
+        });
+
     }
 
     private boolean parameterMatch(Parameter parameter) {

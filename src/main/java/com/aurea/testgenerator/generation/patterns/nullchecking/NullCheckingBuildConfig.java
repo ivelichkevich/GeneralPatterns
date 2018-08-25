@@ -6,8 +6,29 @@ import java.util.Map;
 
 public class NullCheckingBuildConfig {
     String exception;
-    CallableDeclaration callableDeclaration;
+    CallableDeclaration callable;
     Map<Integer, LiteralExpr> args;
 
+    public NullCheckingBuildConfig(String exception, CallableDeclaration callable,
+            Map<Integer, LiteralExpr> args) {
+        this.exception = exception;
+        this.callable = callable;
+        this.args = args;
+    }
 
+    public String getException() {
+        return exception;
+    }
+
+    public CallableDeclaration getCallable() {
+        return callable;
+    }
+
+    public Map<Integer, LiteralExpr> getArgs() {
+        return args;
+    }
+
+    public String getName() {
+        return callable.getNameAsString();
+    }
 }

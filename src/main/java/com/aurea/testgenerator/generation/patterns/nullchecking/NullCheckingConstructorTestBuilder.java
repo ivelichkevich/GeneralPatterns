@@ -17,42 +17,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class NullCheckingConstructorTestBuilder implements NullCheckingTestBuilder {
-
-    @Autowired
-    ValueFactory valueFactory;
-
+public class NullCheckingConstructorTestBuilder extends NullCheckingTestBuilderAbstract {
     @Override
-    public Optional<DependableNode<MethodDeclaration>> build(CallableDeclaration callableDeclaration, String parameter,
-            int order, String exceptionName) {
+    public Optional<DependableNode> build(NullCheckingBuildConfig config) {
         InvocationBuilder invocationBuilder = new InvocationBuilder(valueFactory);
         Optional<DependableNode<ObjectCreationExpr>> maybeConstructor = invocationBuilder
-                .build((ConstructorDeclaration) callableDeclaration);
+                .build((ConstructorDeclaration) config.getCallable());
         if (!maybeConstructor.isPresent()) {
             return Optional.empty();
         }
-        DependableNode<MethodDeclaration> testMethod = new DependableNode<>();
 
         DependableNode<ObjectCreationExpr> constructor = maybeConstructor.get();
-        constructor.getNode().getArguments().set(order, new NullLiteralExpr());
-        TestNodeMerger.appendDependencies(testMethod, constructor);
+        config.args.forEach((key, value) -> constructor.getNode().getArguments().set(key, value));
 
-        String methodName = PREFIX + RandomStringUtils.random(6, true, true)
-                + "_" + constructor.getNode().getTypeAsString() + PASS_NULL_TO + parameter + RESULT;
-
-        String test = "@Test(expected = " + exceptionName + ".class)\n"
-                + "    public void " + methodName + "(){\n"
+        String test = "@Test(expected = " + config.getException() + ".class)\n"
+                + "    public void " + methodName(config) + "(){\n"
                 + "        " + constructor.toString() + ";\n"
                 + "    }";
 
-        testMethod.setNode(JavaParser.parseBodyDeclaration(test).asMethodDeclaration());
-        testMethod.getDependency().getImports().add(Imports.getJUNIT_TEST());
+        DependableNode<MethodDeclaration> testMethod = new DependableNode<>();
 
-        return Optional.of(testMethod);
-    }
-
-    @Override
-    public void setValueFactory(ValueFactory valueFactory) {
-        this.valueFactory = valueFactory;
+        return Optional.of(buidTest(constructor, test, testMethod));
     }
 }

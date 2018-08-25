@@ -14,8 +14,7 @@ public interface NullCheckingTestBuilder {
     String PREFIX = "test_";
     String RESULT = "_NPE";
 
-    Optional<DependableNode<MethodDeclaration>> build(CallableDeclaration callableDeclaration, String parameter,
-            int order, String exceptionName);
+    Optional<DependableNode> build(NullCheckingBuildConfig config);
 
     void setValueFactory(ValueFactory valueFactory);
 }
