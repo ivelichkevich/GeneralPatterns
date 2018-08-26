@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class NullCheckingConstructorTestBuilder extends NullCheckingTestBuilderAbstract {
+
     @Override
     public Optional<DependableNode> build(NullCheckingBuildConfig config) {
         InvocationBuilder invocationBuilder = new InvocationBuilder(valueFactory);

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class NullCheckingMethodTestBuilder extends NullCheckingTestBuilderAbstract {
+
     @Override
     public Optional<DependableNode> build(NullCheckingBuildConfig config) {
         ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) config.getCallable()
@@ -38,7 +39,8 @@ public class NullCheckingMethodTestBuilder extends NullCheckingTestBuilderAbstra
             }
         }
 
-        Optional<DependableNode<MethodCallExpr>> maybeMethod = invocationBuilder.buildMethodInvocation(config.getCallable());
+        Optional<DependableNode<MethodCallExpr>> maybeMethod = invocationBuilder
+                .buildMethodInvocation(config.getCallable());
         if (!maybeMethod.isPresent()) {
             return Optional.empty();
         }

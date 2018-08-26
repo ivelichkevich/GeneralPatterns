@@ -38,7 +38,6 @@ public class NullCheckingTestGenerator implements TestGenerator {
 
     private static Logger logger = LogManager.getLogger(NullCheckingTestGenerator.class);
     private static final String CALL_PATTERTN = "requireNonNull";
-    private static final String IMPORT_PATTERTN = "java.util.";
 
     @Autowired
     private TestGeneratorResultReporter reporter;
@@ -54,12 +53,8 @@ public class NullCheckingTestGenerator implements TestGenerator {
 
     @Override
     public Collection<TestGeneratorResult> generate(Unit unit) {
-        if (!importsMatch(unit)) {
-            return Collections.EMPTY_LIST;
-        }
-
         List<TestGeneratorResult> tests = new ArrayList<>();
-        extractClasses(unit).stream().filter(this::classMatch).forEach(classDeclaration -> {
+        extractClasses(unit).stream().forEach(classDeclaration -> {
             List<CallableDeclaration> toPublish = new ArrayList<>();
             TestGeneratorResult result = generateTests(classDeclaration, toPublish);
             if (!result.getTests().isEmpty()) {
@@ -97,11 +92,6 @@ public class NullCheckingTestGenerator implements TestGenerator {
             builder.build(v).ifPresent(o -> result.getTests().add(o));
             toPublish.add(callableDeclaration);
         });
-    }
-
-    private boolean importsMatch(Unit unit) {
-        return unit.getCu().getImports().stream().map(ImportDeclaration::getName).anyMatch(n -> n.asString()
-                .startsWith(IMPORT_PATTERTN));
     }
 
     private boolean classMatch(ClassOrInterfaceDeclaration classDeclaration) {

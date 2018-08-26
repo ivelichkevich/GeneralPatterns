@@ -72,8 +72,8 @@ public class NullCheckingCheckingService {
                 List<BinaryExpr> list = map.get(param);
                 if (!list.isEmpty() && list.size() <= 2) {
                     Node parent = list.get(0).getParentNode().get();
-                    if (parent instanceof BinaryExpr && parent.getParentNode().isPresent() && parent.getParentNode()
-                            .get() instanceof IfStmt
+                    if ((parent instanceof BinaryExpr) && parent.getParentNode().isPresent() && (parent.getParentNode()
+                            .get() instanceof IfStmt)
                             && list.contains(((BinaryExpr) parent).getLeft()) && list
                             .contains(((BinaryExpr) parent).getLeft())) {
                         if (((BinaryExpr) parent).getOperator().equals(OR)) {

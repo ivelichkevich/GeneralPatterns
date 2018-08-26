@@ -5,6 +5,7 @@ import com.github.javaparser.ast.expr.LiteralExpr;
 import java.util.Map;
 
 public class NullCheckingBuildConfig {
+
     String exception;
     CallableDeclaration callable;
     Map<Integer, LiteralExpr> args;

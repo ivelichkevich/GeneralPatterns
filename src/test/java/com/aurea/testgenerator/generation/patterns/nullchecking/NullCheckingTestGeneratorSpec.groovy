@@ -137,6 +137,104 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
         """
     }
 
+    def "test_OneMethodOneParameterIAE"() {
+        expect:
+        onClassCodeExpectByPattern """
+        public class PanelLittle {
+        
+            private Long id;
+        
+            private String serial;
+        
+            public PanelLittle(Long id, String serial) {
+                if (serial == null) {
+                    throw new IllegalArgumentException("Input should not be null");
+                }
+                this.serial = serial;
+                this.id = id;
+            }
+        }
+        """, """     
+            package sample;
+            
+            import javax\\.annotation\\.Generated;
+            import org\\.junit\\.Test;
+            
+            @Generated\\("GeneralPatterns"\\)
+            public class FooPatternTest \\{
+            
+                @Test\\(expected \\= IllegalArgumentException\\.class\\)
+                public void test_PanelLittle_IllegalArgumentException_[0-9a-zA-Z]+\\(\\) \\{
+                    new PanelLittle\\([0-9a-zA-Z]+L, null\\);
+                \\}
+            \\}
+        """
+    }
+
+    def "test_OneMethodOneParameterRange"() {
+        expect:
+        onClassCodeExpectByPattern """
+        import static java.util.Objects.requireNonNull;
+        
+        public class PanelLittle {
+        
+            private Long id;
+        
+            private String serial;
+        
+            private Double longitude;
+        
+            public PanelLittle(Long id, String serial) {
+                this.id = requireNonNull(id);
+                this.serial = requireNonNull(serial);
+            }
+        
+            public void setLongitude(Double longitude) {
+                if (longitude > 180.0 || longitude < -180.0) {
+                    throw new IllegalArgumentException("width incorrect");
+                }
+                this.longitude = longitude;
+            }
+        
+            public Double getLongitude() {
+                return longitude;
+            }
+        }
+        """, """     
+            package sample;
+            
+            import javax\\.annotation\\.Generated;
+            import org\\.junit\\.Test;
+            import static java\\.util\\.Objects\\.requireNonNull;
+            
+            @Generated\\("GeneralPatterns"\\)
+            public class FooPatternTest \\{
+            
+                @Test\\(expected \\= IllegalArgumentException\\.class\\)
+                public void test_setLongitude_IllegalArgumentException_[0-9a-zA-Z]+\\(\\) \\{
+                    PanelLittle o \\= new PanelLittle\\([0-9a-zA-Z]+L, "[0-9a-zA-Z]+"\\);
+                    o\\.setLongitude\\(181\\.0\\);
+                \\}
+            
+                @Test\\(expected \\= IllegalArgumentException\\.class\\)
+                public void test_setLongitude_IllegalArgumentException_[0-9a-zA-Z]+\\(\\) \\{
+                    PanelLittle o \\= new PanelLittle\\(4[0-9a-zA-Z]+L, "[0-9a-zA-Z]+"\\);
+                    o\\.setLongitude\\(\\-181\\.0\\);
+                \\}
+            
+                @Test\\(expected \\= NullPointerException\\.class\\)
+                public void test_PanelLittle_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
+                    new PanelLittle\\(null, "[0-9a-zA-Z]+"\\);
+                \\}
+            
+                @Test\\(expected \\= NullPointerException\\.class\\)
+                public void test_PanelLittle_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
+                    new PanelLittle\\([0-9a-zA-Z]+L, null\\);
+                \\}
+            \\}
+        """
+    }
+
     @Override
     TestGenerator generator() {
         NullCheckingTestGenerator generator = new NullCheckingTestGenerator()

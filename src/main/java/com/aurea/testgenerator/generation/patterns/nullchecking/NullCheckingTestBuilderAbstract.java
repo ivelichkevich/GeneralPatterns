@@ -9,6 +9,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class NullCheckingTestBuilderAbstract implements NullCheckingTestBuilder {
+
     @Autowired
     ValueFactory valueFactory;
 
