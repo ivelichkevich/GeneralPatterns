@@ -2,7 +2,6 @@ package com.aurea.testgenerator.generation.patterns.nullchecking;
 
 import static com.aurea.testgenerator.generation.patterns.nullchecking.NullCheckingTestTypes.NULL_CHECKING;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 import com.aurea.testgenerator.ast.Callability;
 import com.aurea.testgenerator.generation.TestGenerator;
@@ -10,14 +9,12 @@ import com.aurea.testgenerator.generation.TestGeneratorResult;
 import com.aurea.testgenerator.reporting.CoverageReporter;
 import com.aurea.testgenerator.reporting.TestGeneratorResultReporter;
 import com.aurea.testgenerator.source.Unit;
-import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

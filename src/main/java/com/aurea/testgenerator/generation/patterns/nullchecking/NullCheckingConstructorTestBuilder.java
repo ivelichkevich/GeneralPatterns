@@ -2,18 +2,10 @@ package com.aurea.testgenerator.generation.patterns.nullchecking;
 
 import com.aurea.testgenerator.ast.InvocationBuilder;
 import com.aurea.testgenerator.generation.ast.DependableNode;
-import com.aurea.testgenerator.generation.merge.TestNodeMerger;
-import com.aurea.testgenerator.generation.source.Imports;
-import com.aurea.testgenerator.value.ValueFactory;
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import java.util.Optional;
-import org.apache.commons.lang.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
