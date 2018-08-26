@@ -1,12 +1,8 @@
 package com.aurea.testgenerator.generation.patterns.nullchecking;
 
 import static com.aurea.testgenerator.generation.patterns.nullchecking.NullCheckingTestTypes.NULL_CHECKING;
-import static com.github.javaparser.ast.expr.BinaryExpr.Operator.EQUALS;
-import static com.github.javaparser.ast.expr.BinaryExpr.Operator.LESS;
-import static com.github.javaparser.ast.expr.BinaryExpr.Operator.GREATER;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.IntStream.range;
 
 import com.aurea.testgenerator.ast.Callability;
 import com.aurea.testgenerator.generation.TestGenerator;
@@ -15,31 +11,14 @@ import com.aurea.testgenerator.reporting.CoverageReporter;
 import com.aurea.testgenerator.reporting.TestGeneratorResultReporter;
 import com.aurea.testgenerator.source.Unit;
 import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.BinaryExpr;
-import com.github.javaparser.ast.expr.LiteralExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.NullLiteralExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.ThrowStmt;
-import com.google.common.collect.ImmutableMap;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,7 +93,7 @@ public class NullCheckingTestGenerator implements TestGenerator {
 
     private void buildCallable(List<CallableDeclaration> toPublish, TestGeneratorResult result,
             CallableDeclaration callableDeclaration, NullCheckingTestBuilder builder) {
-        new CheckingSrvice(callableDeclaration).createConfigs().forEach(v -> {
+        new NullCheckingCheckingService(callableDeclaration).createConfigs().forEach(v -> {
             builder.build(v).ifPresent(o -> result.getTests().add(o));
             toPublish.add(callableDeclaration);
         });
