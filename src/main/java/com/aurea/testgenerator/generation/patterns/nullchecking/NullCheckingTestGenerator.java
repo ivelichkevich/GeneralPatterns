@@ -112,55 +112,12 @@ public class NullCheckingTestGenerator implements TestGenerator {
                 .forEach(c -> buildCallable(toPublish, result, c, constructorBuilder));
     }
 
-    private void buildCallable(List<CallableDeclaration> toPublish,
-            TestGeneratorResult result, CallableDeclaration callableDeclaration, NullCheckingTestBuilder builder) {
-        List<String> args = findRequireNonNullArgs(callableDeclaration);
-        buildCallableWithArgs(toPublish, result, callableDeclaration, builder, args,
-                NullPointerException.class.getSimpleName());
-        args = findIfNullCheckArgs(callableDeclaration);
-        buildCallableWithArgs(toPublish, result, callableDeclaration, builder, args,
-                IllegalArgumentException.class.getSimpleName());
-    }
-
-    private List<String> findIfNullCheckArgs(CallableDeclaration callableDeclaration) {
-        return findIfNullCheckCall(callableDeclaration).stream().map(m -> m.getNameAsString())
-                .collect(Collectors.toList());
-    }
-
-    private List<String> findRequireNonNullArgs(CallableDeclaration callableDeclaration) {
-        return findMethodsCall(callableDeclaration, CALL_PATTERTN).stream()
-                .map(c -> c.getArguments().get(0).asNameExpr().getNameAsString()).collect(toList());
-    }
-
-    private void buildCallableWithArgs(List<CallableDeclaration> toPublish, TestGeneratorResult result,
-            CallableDeclaration callableDeclaration,
-            NullCheckingTestBuilder builder, List<String> args, String exceptionName) {
-        NodeList<Parameter> parameters = callableDeclaration.getParameters();
-        findRangeCheckCall(callableDeclaration, parameters.stream().map(p -> p.getNameAsString()).collect(toList()));
-        Map<String, Integer> params = range(0, parameters.size()).boxed()
-                .collect(toMap(parameters::get, i -> i))
-                .entrySet().stream().filter(e -> parameterMatch(e.getKey()))
-                .map(e -> new AbstractMap.SimpleEntry<>(e.getKey().getNameAsString(), e.getValue()))
-                .filter(e -> args.contains(e.getKey()))
-                .collect(toMap(e -> e.getKey(), e -> e.getValue()));
-
-        params.forEach((k, v) -> {
-            builder.build(new NullCheckingBuildConfig(exceptionName, callableDeclaration,
-                    ImmutableMap.of(v, new NullLiteralExpr()))).ifPresent(o -> result.getTests().add(o));
-            toPublish.add(callableDeclaration);
-        });
-
-
-
+    private void buildCallable(List<CallableDeclaration> toPublish, TestGeneratorResult result,
+            CallableDeclaration callableDeclaration, NullCheckingTestBuilder builder) {
         new CheckingSrvice(callableDeclaration).createConfigs().forEach(v -> {
-            builder.build(v);
+            builder.build(v).ifPresent(o -> result.getTests().add(o));
             toPublish.add(callableDeclaration);
         });
-
-    }
-
-    private boolean parameterMatch(Parameter parameter) {
-        return parameter.getType().isReferenceType();
     }
 
     private boolean importsMatch(Unit unit) {
@@ -184,52 +141,6 @@ public class NullCheckingTestGenerator implements TestGenerator {
     private List<ClassOrInterfaceDeclaration> extractClasses(Unit unit) {
         return unit.getCu().findAll(ClassOrInterfaceDeclaration.class).stream()
                 .filter(c -> !c.isInterface()).collect(toList());
-    }
-
-    private static List<MethodCallExpr> findMethodsCall(Node node, String methodName) {
-        return node.findAll(MethodCallExpr.class, n -> n.getNameAsString().equals(methodName));
-    }
-
-    private static List<NameExpr> findIfNullCheckCall(Node node) {
-        return node.findAll(IfStmt.class).stream()
-                .filter(ifStmt -> checkIAE(ifStmt) && checkEqulasNullExp(ifStmt))
-                .map(ifStmt -> toNameExp(ifStmt))
-                .collect(toList());
-    }
-
-    private static List<BinaryExpr> findRangeCheckCall(Node node, List<String> params) {
-    //private static Map<NameExpr, LiteralStringValueExpr> findRangeCheckCall(Node node, List<String> params) {
-        return node.findAll(IfStmt.class).stream()
-                .filter(ifStmt -> checkIAE(ifStmt))
-                .flatMap(ifStmt -> ifStmt.findAll(BinaryExpr.class).stream())
-                .filter(be -> checkRangeExp(be, params))
-                .collect(toList());
-    }
-
-    private static boolean checkRangeExp(BinaryExpr bi, List<String> params) {
-        if (LESS.equals(bi.getOperator()) || GREATER.equals(bi.getOperator())) {
-            return (params.contains(bi.getLeft().toString()) && bi.getRight().isLiteralStringValueExpr())
-                    || (bi.getLeft().isLiteralStringValueExpr() && params.contains(bi.getRight().toString()));
-        }
-        return false;
-    }
-
-    private static boolean checkIAE(IfStmt ifStmt) {
-        return ifStmt.getThenStmt().findAll(ThrowStmt.class).stream()
-                .anyMatch(throwStmt -> throwStmt.findAll(ObjectCreationExpr.class).stream()
-                        .anyMatch(oce -> "IllegalArgumentException".equals(oce.getTypeAsString())));
-    }
-
-    private static boolean checkEqulasNullExp(IfStmt ifStmt) {
-        return ifStmt.findAll(BinaryExpr.class).stream()
-                .anyMatch(bi -> (bi.getOperator().equals(EQUALS) && (bi.getRight().isNullLiteralExpr() || bi
-                        .getLeft().isNullLiteralExpr())));
-    }
-
-    private static NameExpr toNameExp (IfStmt ifStmt) {
-       return ifStmt.findAll(BinaryExpr.class).stream()
-                .map(bi -> (bi.getLeft().isNullLiteralExpr() ? bi.getRight() : bi.getLeft()).asNameExpr())
-                .findFirst().get();
     }
 
     private void publishAndAdd(TestGeneratorResult testGeneratorResult, Unit unit,

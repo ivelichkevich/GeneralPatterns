@@ -84,13 +84,13 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
                 @Test\\(expected \\= NullPointerException\\.class\\)
                 public void test_setup_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
-                    o\\.setup\\([0-9]+L, null\\);
+                    o\\.setup\\(null, "[0-9a-zA-Z]+"\\);
                 \\}
-            
+                
                 @Test\\(expected \\= NullPointerException\\.class\\)
                 public void test_setup_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
                     PanelLittle o \\= new PanelLittle\\(\\);
-                    o\\.setup\\(null, "[0-9a-zA-Z]+"\\);
+                    o\\.setup\\([0-9]+L, null\\);
                 \\}
             \\}
         """
@@ -126,12 +126,12 @@ public class NullCheckingTestGeneratorSpec extends MatcherPipelineTest {
             
                 @Test\\(expected \\= NullPointerException\\.class\\)
                 public void test_PanelLittle_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
-                    new PanelLittle\\([0-9]+L, null\\);
+                    new PanelLittle\\(null, "[0-9a-zA-Z]+"\\);
                 \\}
-                
+            
                 @Test\\(expected \\= NullPointerException\\.class\\)
                 public void test_PanelLittle_NullPointerException_[0-9a-zA-Z]+\\(\\) \\{
-                    new PanelLittle\\(null, "[0-9a-zA-Z]+"\\);
+                    new PanelLittle\\([0-9]+L, null\\);
                 \\}
             \\}
         """

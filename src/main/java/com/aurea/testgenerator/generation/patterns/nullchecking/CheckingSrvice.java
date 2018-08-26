@@ -46,14 +46,15 @@ public class CheckingSrvice {
 
 
         for (int i = 0; i < parameters.size(); i++) {
-            String param = parameters.get(i).getNameAsString();
-            if (args1.contains(param)) {
+            Parameter parameter = parameters.get(i);
+            String param = parameter.getNameAsString();
+            if (parameterMatch(parameter) && args1.contains(param)) {
                 configs.add(new NullCheckingBuildConfig(NullPointerException.class.getSimpleName(), callableDeclaration, ImmutableMap.of(i, new NullLiteralExpr())));
             }
-            if (args2.contains(param)) {
+            if (parameterMatch(parameter) && args2.contains(param)) {
                 configs.add(new NullCheckingBuildConfig(IllegalArgumentException.class.getSimpleName(), callableDeclaration, ImmutableMap.of(i, new NullLiteralExpr())));
             }
-            Map<Integer, LiteralExpr> args3 = new HashMap<>();
+            //Map<Integer, LiteralExpr> args3 = new HashMap<>();
             //map.get(param).forEach();
 
         }
@@ -61,12 +62,16 @@ public class CheckingSrvice {
         return configs;
     }
 
-    private List<String> findIfNullCheckArgs(CallableDeclaration callableDeclaration) {
+    private static boolean parameterMatch(Parameter parameter) {
+        return parameter.getType().isReferenceType();
+    }
+
+    private static List<String> findIfNullCheckArgs(CallableDeclaration callableDeclaration) {
         return findIfNullCheckCall(callableDeclaration).stream().map(m -> m.getNameAsString())
                 .collect(Collectors.toList());
     }
 
-    private List<String> findRequireNonNullArgs(CallableDeclaration callableDeclaration) {
+    private static List<String> findRequireNonNullArgs(CallableDeclaration callableDeclaration) {
         return findMethodsCall(callableDeclaration, CALL_PATTERTN).stream()
                 .map(c -> c.getArguments().get(0).asNameExpr().getNameAsString()).collect(toList());
     }
